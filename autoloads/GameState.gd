@@ -43,6 +43,10 @@ func save_game() -> void:
 		file.close()
 
 
+func has_save() -> bool:
+	return FileAccess.file_exists(SAVE_PATH)
+
+
 func load_game() -> bool:
 	if not FileAccess.file_exists(SAVE_PATH):
 		return false

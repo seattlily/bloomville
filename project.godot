@@ -19,6 +19,11 @@ run/main_scene="res://scenes/Main.tscn"
 GameClock="*res://autoloads/GameClock.gd"
 GameState="*res://autoloads/GameState.gd"
 
+[display]
+
+window/size/viewport_width=1152
+window/size/viewport_height=648
+
 [rendering]
 
 renderer/rendering_method="gl_compatibility"

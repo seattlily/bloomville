@@ -1,8 +1,38 @@
 extends Node2D
 
+const WorldCreationScene := preload("res://scenes/WorldCreation.tscn")
+const GardenGridScene    := preload("res://scenes/GardenGrid.tscn")
+
+var _world_creation: Node = null
+var _garden_grid: Node = null
+
+
 func _ready() -> void:
 	GameClock.day_started.connect(_on_day_started)
 	GameClock.season_changed.connect(_on_season_changed)
+
+	if GameState.has_save():
+		GameState.load_game()
+		_spawn_garden()
+	else:
+		_show_world_creation()
+
+
+func _show_world_creation() -> void:
+	_world_creation = WorldCreationScene.instantiate()
+	_world_creation.world_created.connect(_on_world_created)
+	add_child(_world_creation)
+
+
+func _on_world_created() -> void:
+	_world_creation.queue_free()
+	_world_creation = null
+	_spawn_garden()
+
+
+func _spawn_garden() -> void:
+	_garden_grid = GardenGridScene.instantiate()
+	add_child(_garden_grid)
 
 
 func _on_day_started(day: int, _season: GameClock.Season, _year: int) -> void:

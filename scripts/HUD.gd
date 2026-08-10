@@ -1,0 +1,55 @@
+extends CanvasLayer
+
+## Builds its UI nodes in code to keep the .tscn minimal.
+## Displays: day, season, year, time-of-day progress bar, gold.
+
+var _day_label: Label
+var _time_bar: ProgressBar
+var _gold_label: Label
+
+
+func _ready() -> void:
+	_build_ui()
+	GameClock.day_started.connect(_on_day_started)
+	GameState.gold_changed.connect(_on_gold_changed)
+	_refresh_day(GameClock.current_day, GameClock.current_season, GameClock.current_year)
+	_on_gold_changed(GameState.gold)
+
+
+func _build_ui() -> void:
+	var panel := PanelContainer.new()
+	panel.position = Vector2(10, 10)
+	add_child(panel)
+
+	var vbox := VBoxContainer.new()
+	vbox.add_theme_constant_override("separation", 4)
+	panel.add_child(vbox)
+
+	_day_label = Label.new()
+	_day_label.custom_minimum_size = Vector2(280, 0)
+	vbox.add_child(_day_label)
+
+	_time_bar = ProgressBar.new()
+	_time_bar.custom_minimum_size = Vector2(280, 10)
+	_time_bar.max_value = 1.0
+	_time_bar.show_percentage = false
+	vbox.add_child(_time_bar)
+
+	_gold_label = Label.new()
+	vbox.add_child(_gold_label)
+
+
+func _process(_delta: float) -> void:
+	_time_bar.value = GameClock.time_of_day
+
+
+func _on_day_started(day: int, season: GameClock.Season, year: int) -> void:
+	_refresh_day(day, season, year)
+
+
+func _refresh_day(day: int, _season: GameClock.Season, year: int) -> void:
+	_day_label.text = "Day %d  |  %s  |  Year %d" % [day, GameClock.get_season_name(), year]
+
+
+func _on_gold_changed(amount: int) -> void:
+	_gold_label.text = "Gold: %d" % amount

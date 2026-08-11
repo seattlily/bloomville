@@ -10,4 +10,5 @@ growth_stages = 3
 days_per_stage = 2
 water_need_per_day = 0.25
 harvest_gold = 18
+seed_cost = 22
 color = Color(0.9, 0.45, 0.1, 1)

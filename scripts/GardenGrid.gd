@@ -60,6 +60,8 @@ func _draw_plant(plant: PlantInstance, rect: Rect2) -> void:
 
 
 func _input(event: InputEvent) -> void:
+	if GameState.shop_open:
+		return
 	if not (event is InputEventMouseButton and event.pressed and event.button_index == MOUSE_BUTTON_LEFT):
 		return
 	var local := to_local(get_viewport().get_mouse_position())

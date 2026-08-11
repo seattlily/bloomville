@@ -1,5 +1,7 @@
 extends CanvasLayer
 
+signal open_shop_requested
+
 var _buttons: Dictionary = {}
 var _group: ButtonGroup
 
@@ -56,6 +58,12 @@ func _build_ui() -> void:
 			GameState.selected_plant = null
 	)
 	hbox.add_child(water_btn)
+
+	var shop_btn := Button.new()
+	shop_btn.text = "Shop  [Tab]"
+	shop_btn.custom_minimum_size = Vector2(100, 0)
+	shop_btn.pressed.connect(func(): open_shop_requested.emit())
+	hbox.add_child(shop_btn)
 
 
 func _refresh_buttons() -> void:

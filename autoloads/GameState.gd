@@ -7,6 +7,7 @@ var starting_season: GameClock.Season = GameClock.Season.SPRING
 var gold: int = 100
 var seeds: Dictionary = {}
 var selected_plant: PlantData = null
+var shop_open: bool = false
 
 var all_plants: Dictionary = {}
 

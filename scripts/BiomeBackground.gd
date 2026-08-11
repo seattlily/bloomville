@@ -67,7 +67,7 @@ func _draw_tree(cx: float, base_y: float, height: float, leaf_color: Color, trun
 			Vector2(cx + tw, ty)
 		])
 		var c := leaf_color.darkened(tier * 0.12)
-		draw_colored_polygon(pts, PackedColorArray([c, c, c]))
+		draw_colored_polygon(pts, c)
 
 
 func _draw_mushroom(pos: Vector2) -> void:
@@ -80,7 +80,7 @@ func _draw_mushroom(pos: Vector2) -> void:
 		Vector2(pos.x + 9, pos.y - 9)
 	])
 	var cap_c := Color(0.82, 0.22, 0.18)
-	draw_colored_polygon(cap_pts, PackedColorArray([cap_c, cap_c, cap_c]))
+	draw_colored_polygon(cap_pts, cap_c)
 	draw_circle(Vector2(pos.x - 3, pos.y - 14), 1.5, Color(1, 1, 1, 0.7))
 	draw_circle(Vector2(pos.x + 2, pos.y - 12), 1.2, Color(1, 1, 1, 0.7))
 
@@ -117,7 +117,7 @@ func _draw_dune(cx: float, y: float, width: float) -> void:
 	pts.append(Vector2(cx + width, y + 60))
 	pts.append(Vector2(cx - width, y + 60))
 	var c := Color(0.88, 0.72, 0.42, 0.5)
-	draw_colored_polygon(pts, PackedColorArray().fill(c, pts.size()) if false else _fill_color(pts.size(), c))
+	draw_colored_polygon(pts, c)
 
 
 func _draw_cactus(base: Vector2, height: float) -> void:
@@ -247,7 +247,7 @@ func _draw_mountain_peak(cx: float, base_y: float, height: float, color: Color, 
 		Vector2(cx - width, base_y),
 		Vector2(cx + width, base_y)
 	])
-	draw_colored_polygon(pts, _fill_color(3, color))
+	draw_colored_polygon(pts, color)
 	# Snow cap
 	var snow_h := height * snow_frac
 	var sw := width * snow_frac * 0.85
@@ -256,7 +256,7 @@ func _draw_mountain_peak(cx: float, base_y: float, height: float, color: Color, 
 		Vector2(cx - sw, base_y - height + snow_h),
 		Vector2(cx + sw, base_y - height + snow_h)
 	])
-	draw_colored_polygon(snow_pts, _fill_color(3, Color(0.92, 0.94, 1.0)))
+	draw_colored_polygon(snow_pts, Color(0.92, 0.94, 1.0))
 
 
 func _draw_pine(base: Vector2, height: float) -> void:
@@ -272,17 +272,10 @@ func _draw_pine(base: Vector2, height: float) -> void:
 			Vector2(base.x + tw2, ty)
 		])
 		var c := Color(0.14, 0.32, 0.16).darkened(tier * 0.08)
-		draw_colored_polygon(pts, _fill_color(3, c))
+		draw_colored_polygon(pts, c)
 
 
 # ──────────────── HELPERS ────────────────
-
-func _fill_color(size: int, color: Color) -> PackedColorArray:
-	var arr := PackedColorArray()
-	arr.resize(size)
-	arr.fill(color)
-	return arr
-
 
 func randf_from_seed(s: int) -> float:
 	var rng := RandomNumberGenerator.new()

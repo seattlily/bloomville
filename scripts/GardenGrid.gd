@@ -77,15 +77,14 @@ func _draw_plant(plant: PlantInstance, rect: Rect2) -> void:
 	if stem_h >= 22.0:
 		var leaf_y := base_y - stem_h * 0.48
 		var ls := stem_h * 0.28
-		var lc := PackedColorArray([leaf_color, leaf_color, leaf_color])
 		draw_colored_polygon(PackedVector2Array([
 			Vector2(cx, leaf_y),
 			Vector2(cx - ls * 1.6, leaf_y - ls * 0.9),
-			Vector2(cx - ls * 0.2, leaf_y - ls * 0.5)]), lc)
+			Vector2(cx - ls * 0.2, leaf_y - ls * 0.5)]), leaf_color)
 		draw_colored_polygon(PackedVector2Array([
 			Vector2(cx, leaf_y),
 			Vector2(cx + ls * 1.6, leaf_y - ls * 0.9),
-			Vector2(cx + ls * 0.2, leaf_y - ls * 0.5)]), lc)
+			Vector2(cx + ls * 0.2, leaf_y - ls * 0.5)]), leaf_color)
 
 	if plant.is_mature():
 		_draw_mature_flower(plant.data, tip, alpha, plant_color)
@@ -99,9 +98,8 @@ func _draw_plant(plant: PlantInstance, rect: Rect2) -> void:
 			draw_circle(tip, bud_r * 0.38, plant.data.color.lightened(0.45) * Color(1, 1, 1, alpha))
 			# Small sepal hints
 			var sl := bud_r * 0.75
-			var slc := PackedColorArray([leaf_color, leaf_color, leaf_color])
-			draw_colored_polygon(PackedVector2Array([Vector2(cx, tip.y + bud_r * 0.3), Vector2(cx - sl, tip.y + bud_r + sl * 0.6), Vector2(cx + sl * 0.1, tip.y + bud_r)]), slc)
-			draw_colored_polygon(PackedVector2Array([Vector2(cx, tip.y + bud_r * 0.3), Vector2(cx + sl, tip.y + bud_r + sl * 0.6), Vector2(cx - sl * 0.1, tip.y + bud_r)]), slc)
+			draw_colored_polygon(PackedVector2Array([Vector2(cx, tip.y + bud_r * 0.3), Vector2(cx - sl, tip.y + bud_r + sl * 0.6), Vector2(cx + sl * 0.1, tip.y + bud_r)]), leaf_color)
+			draw_colored_polygon(PackedVector2Array([Vector2(cx, tip.y + bud_r * 0.3), Vector2(cx + sl, tip.y + bud_r + sl * 0.6), Vector2(cx - sl * 0.1, tip.y + bud_r)]), leaf_color)
 
 
 func _draw_mature_flower(data: PlantData, tip: Vector2, alpha: float, plant_color: Color) -> void:

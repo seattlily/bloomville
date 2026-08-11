@@ -1,0 +1,14 @@
+[gd_resource type="Resource" script_class="PlantData" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://resources/PlantData.gd" id="1_plantdata"]
+
+[resource]
+script = ExtResource("1_plantdata")
+display_name = "Anemones"
+season = 0
+growth_stages = 3
+days_per_stage = 2
+water_need_per_day = 0.30
+harvest_gold = 15
+seed_cost = 18
+color = Color(0.45, 0.28, 0.82, 1)

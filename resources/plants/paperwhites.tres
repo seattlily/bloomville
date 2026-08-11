@@ -1,0 +1,14 @@
+[gd_resource type="Resource" script_class="PlantData" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://resources/PlantData.gd" id="1_plantdata"]
+
+[resource]
+script = ExtResource("1_plantdata")
+display_name = "Paperwhites"
+season = 3
+growth_stages = 3
+days_per_stage = 3
+water_need_per_day = 0.30
+harvest_gold = 22
+seed_cost = 28
+color = Color(0.96, 0.96, 0.92, 1)

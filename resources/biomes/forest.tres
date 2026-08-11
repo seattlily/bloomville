@@ -6,5 +6,5 @@
 script = ExtResource("1_biomedata")
 display_name = "Forest"
 description = "A lush, temperate woodland. Soil retains moisture well and drains slowly."
-moisture_decay_per_hour = 0.05
+moisture_decay_per_hour = 0.002
 drainage_rating = 0.5

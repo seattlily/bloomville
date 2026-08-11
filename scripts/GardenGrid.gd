@@ -2,7 +2,7 @@ extends Node2D
 
 const COLS: int = 8
 const ROWS: int = 6
-const TILE_SIZE: int = 64
+const TILE_SIZE: int = 80
 const TILE_GAP: int = 4
 
 const COLOR_DRY   := Color(0.60, 0.45, 0.28)
@@ -10,6 +10,7 @@ const COLOR_MOIST := Color(0.40, 0.28, 0.14)
 const COLOR_WET   := Color(0.25, 0.16, 0.08)
 const COLOR_GRID  := Color(0.0, 0.0, 0.0, 0.18)
 const COLOR_STEM  := Color(0.22, 0.55, 0.18)
+const COLOR_LEAF  := Color(0.20, 0.58, 0.15)
 const COLOR_MATURE_RING := Color(1.0, 0.85, 0.1)
 
 const BIOME_PATHS := {
@@ -62,30 +63,102 @@ func _draw_plant(plant: PlantInstance, rect: Rect2) -> void:
 	var alpha := 1.0 if in_season else 0.38
 	var plant_color := Color(plant.data.color.r, plant.data.color.g, plant.data.color.b, alpha)
 	var stem_color := Color(COLOR_STEM.r, COLOR_STEM.g, COLOR_STEM.b, alpha)
+	var leaf_color := Color(COLOR_LEAF.r, COLOR_LEAF.g, COLOR_LEAF.b, alpha)
 
 	var cx := rect.get_center().x
-	var base_y := rect.end.y - 6.0
-	var stem_heights := [7.0, 15.0, 22.0, 28.0]
+	var base_y := rect.end.y - 8.0
+	var stem_heights := [12.0, 22.0, 36.0, 50.0]
 	var stem_h: float = stem_heights[mini(plant.stage, stem_heights.size() - 1)]
 	var tip := Vector2(cx, base_y - stem_h)
 
-	draw_line(Vector2(cx, base_y), tip, stem_color, 2.0)
+	draw_line(Vector2(cx, base_y), tip, stem_color, 2.5)
+
+	# Paired leaves at mid-stem once the plant is tall enough
+	if stem_h >= 22.0:
+		var leaf_y := base_y - stem_h * 0.48
+		var ls := stem_h * 0.28
+		var lc := PackedColorArray([leaf_color, leaf_color, leaf_color])
+		draw_colored_polygon(PackedVector2Array([
+			Vector2(cx, leaf_y),
+			Vector2(cx - ls * 1.6, leaf_y - ls * 0.9),
+			Vector2(cx - ls * 0.2, leaf_y - ls * 0.5)]), lc)
+		draw_colored_polygon(PackedVector2Array([
+			Vector2(cx, leaf_y),
+			Vector2(cx + ls * 1.6, leaf_y - ls * 0.9),
+			Vector2(cx + ls * 0.2, leaf_y - ls * 0.5)]), lc)
 
 	if plant.is_mature():
-		var orbit := 10.0
-		var petal_r := 5.5
-		for i in 6:
-			var angle := i * TAU / 6.0 - PI * 0.5
-			var p := tip + Vector2(cos(angle), sin(angle)) * orbit
-			draw_circle(p, petal_r, plant_color)
-		draw_circle(tip, 7.0, Color(1.0, 0.92, 0.2, alpha))
-		draw_arc(tip, orbit + petal_r + 3.0, 0, TAU, 28, Color(COLOR_MATURE_RING.r, COLOR_MATURE_RING.g, COLOR_MATURE_RING.b, alpha), 1.5)
+		_draw_mature_flower(plant.data, tip, alpha, plant_color)
+		draw_arc(tip, _flower_orbit(plant.data) + _flower_petal_r(plant.data) + 5.0,
+				0, TAU, 36, Color(COLOR_MATURE_RING.r, COLOR_MATURE_RING.g, COLOR_MATURE_RING.b, alpha), 1.5)
 	else:
-		var bud_radii := [3.5, 6.0, 9.0]
+		var bud_radii := [5.5, 9.0, 13.0]
 		var bud_r: float = bud_radii[mini(plant.stage, bud_radii.size() - 1)]
 		draw_circle(tip, bud_r, plant_color)
 		if plant.stage >= 1:
 			draw_circle(tip, bud_r * 0.38, plant.data.color.lightened(0.45) * Color(1, 1, 1, alpha))
+			# Small sepal hints
+			var sl := bud_r * 0.75
+			var slc := PackedColorArray([leaf_color, leaf_color, leaf_color])
+			draw_colored_polygon(PackedVector2Array([Vector2(cx, tip.y + bud_r * 0.3), Vector2(cx - sl, tip.y + bud_r + sl * 0.6), Vector2(cx + sl * 0.1, tip.y + bud_r)]), slc)
+			draw_colored_polygon(PackedVector2Array([Vector2(cx, tip.y + bud_r * 0.3), Vector2(cx + sl, tip.y + bud_r + sl * 0.6), Vector2(cx - sl * 0.1, tip.y + bud_r)]), slc)
+
+
+func _draw_mature_flower(data: PlantData, tip: Vector2, alpha: float, plant_color: Color) -> void:
+	var pcount := _petal_count(data)
+	var orbit := _flower_orbit(data)
+	var pr := _flower_petal_r(data)
+	var is_sunflower := data.display_name == "Sunflower"
+	var is_snowdrop  := data.display_name == "Snowdrop"
+
+	for i in pcount:
+		var angle := float(i) / float(pcount) * TAU - PI * 0.5
+		var p := tip + Vector2(cos(angle), sin(angle)) * orbit
+		if is_snowdrop:
+			# Drooping teardrop: draw slightly below tip
+			var droop := tip + Vector2(cos(angle), sin(angle) + 0.4).normalized() * orbit
+			draw_circle(droop, pr, plant_color)
+		else:
+			draw_circle(p, pr, plant_color)
+			# Inner accent for visual depth
+			draw_circle(p + Vector2(cos(angle), sin(angle)) * (pr * 0.3),
+					pr * 0.35, plant_color.lightened(0.3) * Color(1, 1, 1, alpha))
+
+	# Center
+	if is_sunflower:
+		draw_circle(tip, 11.0, Color(0.30, 0.18, 0.04, alpha))
+		draw_circle(tip,  6.0, Color(0.50, 0.28, 0.06, alpha))
+		draw_circle(tip,  3.0, Color(0.20, 0.10, 0.02, alpha))
+	elif is_snowdrop:
+		draw_circle(tip, 6.0, Color(1.0, 1.0, 1.0, alpha))
+		draw_circle(tip, 3.0, Color(0.60, 0.90, 0.55, alpha))
+	else:
+		draw_circle(tip, 8.0, Color(1.0, 0.92, 0.20, alpha))
+		draw_circle(tip, 4.0, Color(1.0, 0.72, 0.10, alpha))
+
+
+func _petal_count(data: PlantData) -> int:
+	match data.display_name:
+		"Sunflower": return 14
+		"Aster":     return 20
+		"Snowdrop":  return 6
+	return 6  # Crocus
+
+
+func _flower_orbit(data: PlantData) -> float:
+	match data.display_name:
+		"Sunflower": return 16.0
+		"Aster":     return 12.0
+		"Snowdrop":  return 10.0
+	return 14.0
+
+
+func _flower_petal_r(data: PlantData) -> float:
+	match data.display_name:
+		"Sunflower": return 8.0
+		"Aster":     return 5.0
+		"Snowdrop":  return 7.0
+	return 9.0
 
 
 func _input(event: InputEvent) -> void:

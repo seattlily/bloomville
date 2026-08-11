@@ -1,11 +1,12 @@
 extends Node2D
 
-const WorldCreationScene := preload("res://scenes/WorldCreation.tscn")
-const GardenGridScene    := preload("res://scenes/GardenGrid.tscn")
-const SeedPanelScene     := preload("res://scenes/SeedPanel.tscn")
-const SeedShopScene      := preload("res://scenes/SeedShop.tscn")
+const WorldCreationScene   := preload("res://scenes/WorldCreation.tscn")
+const GardenGridScene      := preload("res://scenes/GardenGrid.tscn")
+const SeedPanelScene       := preload("res://scenes/SeedPanel.tscn")
+const SeedShopScene        := preload("res://scenes/SeedShop.tscn")
 const DayNightScene        := preload("res://scenes/DayNight.tscn")
 const SeasonSummaryScene   := preload("res://scenes/SeasonSummary.tscn")
+const BiomeBackgroundScene := preload("res://scenes/BiomeBackground.tscn")
 
 var _world_creation: Node = null
 var _garden_grid: Node = null
@@ -45,6 +46,10 @@ func _on_world_created() -> void:
 
 
 func _spawn_garden() -> void:
+	var biome_bg := BiomeBackgroundScene.instantiate()
+	add_child(biome_bg)
+	move_child(biome_bg, 1)  # after DayNight CanvasLayer, before HUD
+
 	_garden_grid = GardenGridScene.instantiate()
 	add_child(_garden_grid)
 

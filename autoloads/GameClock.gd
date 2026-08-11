@@ -8,7 +8,7 @@ const DAYS_PER_SEASON: int = 30
 
 enum Season { SPRING = 0, SUMMER = 1, FALL = 2, WINTER = 3 }
 
-var debug_mode: bool = true
+var debug_mode: bool = false
 
 var current_day: int = 1
 var current_season: Season = Season.SPRING

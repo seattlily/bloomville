@@ -6,5 +6,5 @@
 script = ExtResource("1_biomedata")
 display_name = "Mountain"
 description = "Cool, rocky highlands. Dense soil holds moisture for a long time."
-moisture_decay_per_hour = 0.03
+moisture_decay_per_hour = 0.001
 drainage_rating = 0.3

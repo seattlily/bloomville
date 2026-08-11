@@ -6,5 +6,5 @@
 script = ExtResource("1_biomedata")
 display_name = "Beach"
 description = "Sandy shores with salty air. Water drains quickly through loose sand."
-moisture_decay_per_hour = 0.08
+moisture_decay_per_hour = 0.004
 drainage_rating = 0.9

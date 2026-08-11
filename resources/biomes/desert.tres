@@ -6,5 +6,5 @@
 script = ExtResource("1_biomedata")
 display_name = "Desert"
 description = "Arid and sun-baked. Soil dries out fast and barely holds water."
-moisture_decay_per_hour = 0.10
+moisture_decay_per_hour = 0.007
 drainage_rating = 0.8

@@ -1,5 +1,7 @@
 extends CanvasLayer
 
+const SkyCanvasScript := preload("res://scripts/SkyCanvas.gd")
+
 var _overlay: ColorRect
 var _season_overlay: ColorRect
 
@@ -25,6 +27,10 @@ const SKY_GRADIENT: Array = [
 
 func _ready() -> void:
 	layer = 1
+
+	var sky_canvas := SkyCanvasScript.new()
+	add_child(sky_canvas)
+
 	_overlay = ColorRect.new()
 	_overlay.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
 	_overlay.mouse_filter = Control.MOUSE_FILTER_IGNORE

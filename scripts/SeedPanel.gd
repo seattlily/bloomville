@@ -14,8 +14,12 @@ func _ready() -> void:
 
 func _build_ui() -> void:
 	var anchor := Control.new()
-	anchor.set_anchors_and_offsets_preset(Control.PRESET_BOTTOM_WIDE)
-	anchor.custom_minimum_size = Vector2(0, 56)
+	anchor.anchor_left = 0.0
+	anchor.anchor_right = 1.0
+	anchor.anchor_top = 1.0
+	anchor.anchor_bottom = 1.0
+	anchor.offset_top = -60.0
+	anchor.offset_bottom = 0.0
 	add_child(anchor)
 
 	var panel := PanelContainer.new()

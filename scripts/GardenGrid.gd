@@ -58,13 +58,18 @@ func _draw() -> void:
 
 
 func _draw_plant(plant: PlantInstance, rect: Rect2) -> void:
+	var in_season := GameClock.current_season == plant.data.season
+	var alpha := 1.0 if in_season else 0.38
+	var plant_color := Color(plant.data.color.r, plant.data.color.g, plant.data.color.b, alpha)
+	var stem_color := Color(COLOR_STEM.r, COLOR_STEM.g, COLOR_STEM.b, alpha)
+
 	var cx := rect.get_center().x
 	var base_y := rect.end.y - 6.0
 	var stem_heights := [7.0, 15.0, 22.0, 28.0]
 	var stem_h := stem_heights[mini(plant.stage, stem_heights.size() - 1)]
 	var tip := Vector2(cx, base_y - stem_h)
 
-	draw_line(Vector2(cx, base_y), tip, COLOR_STEM, 2.0)
+	draw_line(Vector2(cx, base_y), tip, stem_color, 2.0)
 
 	if plant.is_mature():
 		var orbit := 10.0
@@ -72,19 +77,19 @@ func _draw_plant(plant: PlantInstance, rect: Rect2) -> void:
 		for i in 6:
 			var angle := i * TAU / 6.0 - PI * 0.5
 			var p := tip + Vector2(cos(angle), sin(angle)) * orbit
-			draw_circle(p, petal_r, plant.data.color)
-		draw_circle(tip, 7.0, Color(1.0, 0.92, 0.2))
-		draw_arc(tip, orbit + petal_r + 3.0, 0, TAU, 28, COLOR_MATURE_RING, 1.5)
+			draw_circle(p, petal_r, plant_color)
+		draw_circle(tip, 7.0, Color(1.0, 0.92, 0.2, alpha))
+		draw_arc(tip, orbit + petal_r + 3.0, 0, TAU, 28, Color(COLOR_MATURE_RING.r, COLOR_MATURE_RING.g, COLOR_MATURE_RING.b, alpha), 1.5)
 	else:
 		var bud_radii := [3.5, 6.0, 9.0]
 		var bud_r := bud_radii[mini(plant.stage, bud_radii.size() - 1)]
-		draw_circle(tip, bud_r, plant.data.color)
+		draw_circle(tip, bud_r, plant_color)
 		if plant.stage >= 1:
-			draw_circle(tip, bud_r * 0.38, plant.data.color.lightened(0.45))
+			draw_circle(tip, bud_r * 0.38, plant.data.color.lightened(0.45) * Color(1, 1, 1, alpha))
 
 
 func _input(event: InputEvent) -> void:
-	if GameState.shop_open:
+	if GameState.shop_open or GameState.overlay_open:
 		return
 	if not (event is InputEventMouseButton and event.pressed and event.button_index == MOUSE_BUTTON_LEFT):
 		return
@@ -106,7 +111,7 @@ func _input(event: InputEvent) -> void:
 
 
 func _harvest(tile: SoilTile) -> void:
-	GameState.add_gold(tile.plant.data.harvest_gold)
+	GameState.record_harvest(tile.plant.data.harvest_gold)
 	tile.plant = null
 
 
@@ -125,9 +130,9 @@ func _on_hour_passed(_hour: int) -> void:
 	queue_redraw()
 
 
-func _on_day_started(_day: int, _season: GameClock.Season, _year: int) -> void:
+func _on_day_started(_day: int, season: GameClock.Season, _year: int) -> void:
 	for tile in _tiles:
-		if tile.plant:
+		if tile.plant and tile.plant.data.season == season:
 			tile.plant.try_grow(tile.moisture)
 	queue_redraw()
 

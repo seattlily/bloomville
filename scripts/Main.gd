@@ -4,16 +4,21 @@ const WorldCreationScene := preload("res://scenes/WorldCreation.tscn")
 const GardenGridScene    := preload("res://scenes/GardenGrid.tscn")
 const SeedPanelScene     := preload("res://scenes/SeedPanel.tscn")
 const SeedShopScene      := preload("res://scenes/SeedShop.tscn")
-const DayNightScene      := preload("res://scenes/DayNight.tscn")
+const DayNightScene        := preload("res://scenes/DayNight.tscn")
+const SeasonSummaryScene   := preload("res://scenes/SeasonSummary.tscn")
 
 var _world_creation: Node = null
 var _garden_grid: Node = null
 var _seed_panel: Node = null
 var _seed_shop: Node = null
+var _season_summary: Node = null
 
 
 func _ready() -> void:
 	add_child(DayNightScene.instantiate())
+
+	_season_summary = SeasonSummaryScene.instantiate()
+	add_child(_season_summary)
 
 	GameClock.day_started.connect(_on_day_started)
 	GameClock.season_changed.connect(_on_season_changed)
@@ -57,8 +62,10 @@ func _on_day_started(day: int, _season: GameClock.Season, _year: int) -> void:
 	print("[Clock] Day %d of %s, Year %d" % [day, GameClock.get_season_name(), GameClock.current_year])
 
 
-func _on_season_changed(_season: GameClock.Season, year: int) -> void:
+func _on_season_changed(new_season: GameClock.Season, year: int) -> void:
 	print("[Clock] Season changed to %s, Year %d" % [GameClock.get_season_name(), year])
+	var ended_season := ((new_season - 1 + 4) % 4) as GameClock.Season
+	_season_summary.show_for_season(ended_season, new_season)
 
 
 func _input(event: InputEvent) -> void:

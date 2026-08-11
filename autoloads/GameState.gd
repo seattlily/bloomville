@@ -8,6 +8,10 @@ var gold: int = 100
 var seeds: Dictionary = {}
 var selected_plant: PlantData = null
 var shop_open: bool = false
+var overlay_open: bool = false
+
+var season_harvests: int = 0
+var season_gold: int = 0
 
 var all_plants: Dictionary = {}
 
@@ -49,6 +53,17 @@ func spend_gold(amount: int) -> bool:
 	gold -= amount
 	gold_changed.emit(gold)
 	return true
+
+
+func record_harvest(gold: int) -> void:
+	season_harvests += 1
+	season_gold += gold
+	add_gold(gold)
+
+
+func reset_season_stats() -> void:
+	season_harvests = 0
+	season_gold = 0
 
 
 func use_seed(plant_name: String) -> bool:

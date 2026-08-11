@@ -1,6 +1,14 @@
 extends CanvasLayer
 
 var _overlay: ColorRect
+var _season_overlay: ColorRect
+
+const SEASON_TINTS := {
+	GameClock.Season.SPRING: Color(0.30, 0.75, 0.20, 0.10),
+	GameClock.Season.SUMMER: Color(0.88, 0.68, 0.12, 0.09),
+	GameClock.Season.FALL:   Color(0.80, 0.38, 0.06, 0.13),
+	GameClock.Season.WINTER: Color(0.50, 0.62, 0.90, 0.14),
+}
 
 const SKY_GRADIENT: Array = [
 	[0.00, Color(0.04, 0.04, 0.15)],
@@ -23,12 +31,19 @@ func _ready() -> void:
 	_overlay.color = Color.TRANSPARENT
 	add_child(_overlay)
 
+	_season_overlay = ColorRect.new()
+	_season_overlay.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
+	_season_overlay.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	_season_overlay.color = Color.TRANSPARENT
+	add_child(_season_overlay)
+
 
 func _process(_delta: float) -> void:
 	var t := GameClock.time_of_day
 	RenderingServer.set_default_clear_color(_sky_color(t))
 	var night_alpha := 0.48 * (1.0 - sin(t * PI))
 	_overlay.color = Color(0.0, 0.02, 0.12, night_alpha)
+	_season_overlay.color = SEASON_TINTS[GameClock.current_season]
 
 
 func _sky_color(t: float) -> Color:

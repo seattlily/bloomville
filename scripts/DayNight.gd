@@ -1,0 +1,41 @@
+extends CanvasLayer
+
+var _overlay: ColorRect
+
+const SKY_GRADIENT: Array = [
+	[0.00, Color(0.04, 0.04, 0.15)],
+	[0.18, Color(0.12, 0.08, 0.24)],
+	[0.25, Color(0.80, 0.38, 0.18)],
+	[0.33, Color(0.55, 0.72, 0.92)],
+	[0.50, Color(0.38, 0.62, 0.95)],
+	[0.67, Color(0.55, 0.72, 0.92)],
+	[0.75, Color(0.82, 0.38, 0.18)],
+	[0.85, Color(0.28, 0.08, 0.26)],
+	[1.00, Color(0.04, 0.04, 0.15)],
+]
+
+
+func _ready() -> void:
+	layer = 0
+	_overlay = ColorRect.new()
+	_overlay.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
+	_overlay.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	_overlay.color = Color.TRANSPARENT
+	add_child(_overlay)
+
+
+func _process(_delta: float) -> void:
+	var t := GameClock.time_of_day
+	RenderingServer.set_default_clear_color(_sky_color(t))
+	var night_alpha := 0.48 * (1.0 - sin(t * PI))
+	_overlay.color = Color(0.0, 0.02, 0.12, night_alpha)
+
+
+func _sky_color(t: float) -> Color:
+	for i in range(SKY_GRADIENT.size() - 1):
+		var t0: float = SKY_GRADIENT[i][0]
+		var t1: float = SKY_GRADIENT[i + 1][0]
+		if t <= t1:
+			var frac := (t - t0) / (t1 - t0)
+			return (SKY_GRADIENT[i][1] as Color).lerp(SKY_GRADIENT[i + 1][1], frac)
+	return SKY_GRADIENT[-1][1] as Color

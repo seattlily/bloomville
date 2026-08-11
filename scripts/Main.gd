@@ -4,6 +4,7 @@ const WorldCreationScene := preload("res://scenes/WorldCreation.tscn")
 const GardenGridScene    := preload("res://scenes/GardenGrid.tscn")
 const SeedPanelScene     := preload("res://scenes/SeedPanel.tscn")
 const SeedShopScene      := preload("res://scenes/SeedShop.tscn")
+const DayNightScene      := preload("res://scenes/DayNight.tscn")
 
 var _world_creation: Node = null
 var _garden_grid: Node = null
@@ -12,6 +13,8 @@ var _seed_shop: Node = null
 
 
 func _ready() -> void:
+	add_child(DayNightScene.instantiate())
+
 	GameClock.day_started.connect(_on_day_started)
 	GameClock.season_changed.connect(_on_season_changed)
 

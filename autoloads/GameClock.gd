@@ -69,5 +69,16 @@ func get_season_name() -> String:
 	return ["Spring", "Summer", "Fall", "Winter"][current_season]
 
 
+func get_time_string() -> String:
+	var total_minutes := int(time_of_day * 24.0 * 60.0)
+	var hour := total_minutes / 60
+	var minute := total_minutes % 60
+	var suffix := "AM" if hour < 12 else "PM"
+	var display_hour := hour % 12
+	if display_hour == 0:
+		display_hour = 12
+	return "%d:%02d %s" % [display_hour, minute, suffix]
+
+
 func set_starting_season(season: Season) -> void:
 	current_season = season

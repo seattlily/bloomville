@@ -1,9 +1,7 @@
 extends CanvasLayer
 
-## Builds its UI nodes in code to keep the .tscn minimal.
-## Displays: day, season, year, time-of-day progress bar, gold.
-
 var _day_label: Label
+var _time_label: Label
 var _time_bar: ProgressBar
 var _gold_label: Label
 
@@ -35,12 +33,18 @@ func _build_ui() -> void:
 	_time_bar.show_percentage = false
 	vbox.add_child(_time_bar)
 
+	_time_label = Label.new()
+	_time_label.add_theme_font_size_override("font_size", 11)
+	_time_label.modulate = Color(0.75, 0.75, 0.75)
+	vbox.add_child(_time_label)
+
 	_gold_label = Label.new()
 	vbox.add_child(_gold_label)
 
 
 func _process(_delta: float) -> void:
 	_time_bar.value = GameClock.time_of_day
+	_time_label.text = GameClock.get_time_string()
 
 
 func _on_day_started(day: int, season: GameClock.Season, year: int) -> void:

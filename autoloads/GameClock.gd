@@ -27,6 +27,8 @@ var _last_hour: int = -1
 
 
 func _ready() -> void:
+	_elapsed = 0.25 * _seconds_per_day()  # start at 6 AM, not midnight
+	time_of_day = 0.25
 	day_started.emit(current_day, current_season, current_year)
 
 

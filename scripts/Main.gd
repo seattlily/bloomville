@@ -15,7 +15,9 @@ var _season_summary: Node = null
 
 
 func _ready() -> void:
-	add_child(DayNightScene.instantiate())
+	var day_night := DayNightScene.instantiate()
+	add_child(day_night)
+	move_child(day_night, 0)  # behind HUD (same layer, earlier in tree = drawn first)
 
 	_season_summary = SeasonSummaryScene.instantiate()
 	add_child(_season_summary)

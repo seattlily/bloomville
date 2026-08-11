@@ -24,7 +24,7 @@ const SKY_GRADIENT: Array = [
 
 
 func _ready() -> void:
-	layer = 0
+	layer = 1
 	_overlay = ColorRect.new()
 	_overlay.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
 	_overlay.mouse_filter = Control.MOUSE_FILTER_IGNORE
@@ -41,7 +41,7 @@ func _ready() -> void:
 func _process(_delta: float) -> void:
 	var t := GameClock.time_of_day
 	RenderingServer.set_default_clear_color(_sky_color(t))
-	var night_alpha := 0.48 * (1.0 - sin(t * PI))
+	var night_alpha := 0.32 * (1.0 - sin(t * PI))
 	_overlay.color = Color(0.0, 0.02, 0.12, night_alpha)
 	_season_overlay.color = SEASON_TINTS[GameClock.current_season]
 

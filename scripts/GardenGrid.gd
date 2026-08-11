@@ -29,9 +29,12 @@ const BIOME_PATHS := {
 	GameState.Biome.MOUNTAIN: "res://resources/biomes/mountain.tres",
 }
 
+const EffectLayerScript := preload("res://scripts/EffectLayer.gd")
+
 var _tiles: Array[SoilTile] = []
 var _tile_variations: Array[float] = []
 var _biome_data: BiomeData = null
+var _fx: Node = null
 
 
 func _ready() -> void:
@@ -43,6 +46,8 @@ func _ready() -> void:
 		_tile_variations.append(rng.randf_range(-0.05, 0.05))
 	GameClock.hour_passed.connect(_on_hour_passed)
 	GameClock.day_started.connect(_on_day_started)
+	_fx = EffectLayerScript.new()
+	add_child(_fx)
 	_center_grid()
 
 
@@ -349,19 +354,23 @@ func _input(event: InputEvent) -> void:
 	var idx := int(cell.y) * COLS + int(cell.x)
 	var tile := _tiles[idx]
 
+	var center := _tile_rect(int(cell.x), int(cell.y)).get_center()
 	if tile.plant and tile.plant.is_mature():
-		_harvest(tile)
+		_harvest(tile, center)
 	elif tile.plant == null and GameState.selected_plant != null:
 		_plant_seed(tile)
 	else:
 		tile.moisture = clampf(tile.moisture + 0.35, 0.0, 1.0)
+		_fx.add_splash(center)
 
 	queue_redraw()
 
 
-func _harvest(tile: SoilTile) -> void:
+func _harvest(tile: SoilTile, center: Vector2) -> void:
 	var flower_name := tile.plant.data.display_name
-	GameState.record_harvest(tile.plant.data.harvest_gold, flower_name)
+	var gold := tile.plant.data.harvest_gold
+	GameState.record_harvest(gold, flower_name)
+	_fx.add_harvest(center, gold)
 	tile.plant = null
 	tile.overwater_hours = 0
 
@@ -393,9 +402,15 @@ func _on_hour_passed(_hour: int) -> void:
 
 
 func _on_day_started(_day: int, season: GameClock.Season, _year: int) -> void:
-	for tile in _tiles:
+	for i in _tiles.size():
+		var tile := _tiles[i]
 		if tile.plant and tile.plant.data.season == season:
+			var old_stage := tile.plant.stage
 			tile.plant.try_grow(tile.moisture)
+			if tile.plant.stage > old_stage:
+				var col := i % COLS
+				var row := i / COLS
+				_fx.add_grow(_tile_rect(col, row).get_center())
 	queue_redraw()
 
 

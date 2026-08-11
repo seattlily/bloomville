@@ -31,11 +31,7 @@ func _ready() -> void:
 	GameClock.day_started.connect(_on_day_started)
 	GameClock.season_changed.connect(_on_season_changed)
 
-	if GameState.has_save():
-		GameState.load_game()
-		_spawn_garden()
-	else:
-		_show_world_creation()
+	_show_world_creation()
 
 
 func _show_world_creation() -> void:

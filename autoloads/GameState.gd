@@ -20,8 +20,11 @@ var all_plants: Dictionary = {}
 var transaction_log: Array = []
 const MAX_LOG_ENTRIES: int = 30
 
-const SAVE_PATH: String = "user://bloomville.save"
+const OLD_SAVE_PATH: String = "user://bloomville.save"
+const SAVE_SLOTS: int = 3
 const AUTOSAVE_INTERVAL: float = 120.0  # 2 real minutes
+
+var save_slot: int = 0
 
 var _autosave_timer: float = 0.0
 var _game_started: bool = false
@@ -32,6 +35,7 @@ signal autosave_fired
 
 
 func _ready() -> void:
+	_migrate_old_save()
 	all_plants = {
 		"ranunculus":        load("res://resources/plants/ranunculus.tres"),
 		"peonies":           load("res://resources/plants/peonies.tres"),
@@ -137,8 +141,48 @@ func add_seed(plant_name: String, count: int) -> void:
 	seeds_changed.emit()
 
 
+func slot_save_path(slot: int) -> String:
+	return "user://bloomville_%d.save" % slot
+
+
+func has_save_in_slot(slot: int) -> bool:
+	return FileAccess.file_exists(slot_save_path(slot))
+
+
 func has_save() -> bool:
-	return FileAccess.file_exists(SAVE_PATH)
+	return has_save_in_slot(save_slot)
+
+
+func get_slot_metadata(slot: int) -> Dictionary:
+	var path := slot_save_path(slot)
+	if not FileAccess.file_exists(path):
+		return {}
+	var file := FileAccess.open(path, FileAccess.READ)
+	if not file:
+		return {}
+	var json := JSON.new()
+	if json.parse(file.get_as_text()) != OK:
+		file.close()
+		return {}
+	file.close()
+	var d: Dictionary = json.get_data()
+	return {
+		"gardener_name": d.get("gardener_name", "Gardener"),
+		"day":    d.get("day", 1),
+		"season": d.get("season", 0),
+		"year":   d.get("year", 1),
+		"gold":   d.get("gold", 100),
+		"biome":  d.get("biome", 0),
+	}
+
+
+func _migrate_old_save() -> void:
+	if FileAccess.file_exists(OLD_SAVE_PATH) and not FileAccess.file_exists(slot_save_path(0)):
+		var content := FileAccess.get_file_as_string(OLD_SAVE_PATH)
+		var dest := FileAccess.open(slot_save_path(0), FileAccess.WRITE)
+		if dest:
+			dest.store_string(content)
+			dest.close()
 
 
 func save_game() -> void:
@@ -153,16 +197,17 @@ func save_game() -> void:
 		"seeds":            seeds,
 		"transaction_log":  transaction_log.slice(0, 20),
 	}
-	var file := FileAccess.open(SAVE_PATH, FileAccess.WRITE)
+	var file := FileAccess.open(slot_save_path(save_slot), FileAccess.WRITE)
 	if file:
 		file.store_string(JSON.stringify(data))
 		file.close()
 
 
 func load_game() -> bool:
-	if not FileAccess.file_exists(SAVE_PATH):
+	var path := slot_save_path(save_slot)
+	if not FileAccess.file_exists(path):
 		return false
-	var file := FileAccess.open(SAVE_PATH, FileAccess.READ)
+	var file := FileAccess.open(path, FileAccess.READ)
 	if not file:
 		return false
 	var json := JSON.new()

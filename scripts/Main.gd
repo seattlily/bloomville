@@ -2,9 +2,11 @@ extends Node2D
 
 const WorldCreationScene := preload("res://scenes/WorldCreation.tscn")
 const GardenGridScene    := preload("res://scenes/GardenGrid.tscn")
+const SeedPanelScene     := preload("res://scenes/SeedPanel.tscn")
 
 var _world_creation: Node = null
 var _garden_grid: Node = null
+var _seed_panel: Node = null
 
 
 func _ready() -> void:
@@ -33,6 +35,8 @@ func _on_world_created() -> void:
 func _spawn_garden() -> void:
 	_garden_grid = GardenGridScene.instantiate()
 	add_child(_garden_grid)
+	_seed_panel = SeedPanelScene.instantiate()
+	add_child(_seed_panel)
 
 
 func _on_day_started(day: int, _season: GameClock.Season, _year: int) -> void:

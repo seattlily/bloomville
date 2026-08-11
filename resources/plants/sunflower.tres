@@ -1,0 +1,13 @@
+[gd_resource type="Resource" script_class="PlantData" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://resources/PlantData.gd" id="1_plantdata"]
+
+[resource]
+script = ExtResource("1_plantdata")
+display_name = "Sunflower"
+season = 1
+growth_stages = 3
+days_per_stage = 3
+water_need_per_day = 0.4
+harvest_gold = 20
+color = Color(1.0, 0.85, 0.1, 1)

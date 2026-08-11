@@ -5,9 +5,10 @@ signal open_shop_requested
 const PREVIEW_H: float = 90.0
 const BUTTON_H: float  = 60.0
 
+const FlowerPreviewCell := preload("res://scripts/FlowerPreviewCell.gd")
+
 var _buttons: Dictionary = {}
 var _group: ButtonGroup
-var _preview_nodes: Dictionary = {}
 
 
 func _ready() -> void:
@@ -51,12 +52,9 @@ func _build_ui() -> void:
 
 	for plant_name in GameState.all_plants:
 		var data := GameState.all_plants[plant_name] as PlantData
-		var cell := _make_preview_cell(plant_name, data)
-		_preview_nodes[plant_name] = cell
-		preview_row.add_child(cell)
+		preview_row.add_child(_make_preview_cell(data))
 
-	var sep := HSeparator.new()
-	vbox.add_child(sep)
+	vbox.add_child(HSeparator.new())
 
 	# ── Seed buttons row ──────────────────────────────────────────
 	var hbox := HBoxContainer.new()
@@ -85,7 +83,6 @@ func _build_ui() -> void:
 		_buttons[plant_name] = btn
 		hbox.add_child(btn)
 
-	# Watering can button
 	var water_btn := Button.new()
 	water_btn.text = "🪣 Water"
 	water_btn.toggle_mode = true
@@ -105,26 +102,23 @@ func _build_ui() -> void:
 	hbox.add_child(shop_btn)
 
 
-func _make_preview_cell(plant_name: String, data: PlantData) -> Control:
+func _make_preview_cell(data: PlantData) -> Control:
 	var cell := Control.new()
 	cell.custom_minimum_size = Vector2(80, PREVIEW_H - 8)
-	cell.tooltip_text = data.display_name
 
-	# Label at bottom of cell
 	var lbl := Label.new()
 	lbl.text = data.display_name
 	lbl.add_theme_font_size_override("font_size", 10)
 	lbl.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	lbl.anchor_left   = 0.0
 	lbl.anchor_right  = 1.0
-	lbl.anchor_bottom = 1.0
 	lbl.anchor_top    = 1.0
+	lbl.anchor_bottom = 1.0
 	lbl.offset_top    = -16
-	lbl.offset_bottom = 0
+	lbl.offset_bottom = 0.0
 	cell.add_child(lbl)
 
-	# Drawing canvas for the flower
-	var canvas := _FlowerPreviewCanvas.new()
+	var canvas := FlowerPreviewCell.new()
 	canvas.plant_data = data
 	canvas.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
 	canvas.offset_bottom = -16
@@ -147,59 +141,3 @@ func _refresh_buttons() -> void:
 
 func _set_button_text(btn: Button, data: PlantData, count: int) -> void:
 	btn.text = "%s (%d)" % [data.display_name, count]
-
-
-# ── Inner class: draws a single full-bloom flower preview ────────
-
-class _FlowerPreviewCanvas extends Control:
-	var plant_data: PlantData = null
-
-	func _draw() -> void:
-		if not plant_data:
-			return
-		var cx := size.x * 0.5
-		var cy := size.y * 0.5 + 4
-
-		var stem_c := Color(0.22, 0.55, 0.18)
-		var leaf_c := Color(0.20, 0.58, 0.15)
-		draw_line(Vector2(cx, cy + 16), Vector2(cx, cy - 16), stem_c, 2.0)
-
-		# Leaves
-		var lc := PackedColorArray([leaf_c, leaf_c, leaf_c])
-		draw_colored_polygon(PackedVector2Array([Vector2(cx, cy), Vector2(cx - 10, cy - 6), Vector2(cx - 2, cy - 2)]), lc)
-		draw_colored_polygon(PackedVector2Array([Vector2(cx, cy), Vector2(cx + 10, cy - 6), Vector2(cx + 2, cy - 2)]), lc)
-
-		var tip := Vector2(cx, cy - 22)
-		var pcount := _pcount()
-		var orbit := 12.0
-		var pr := _prad()
-		var pc := plant_data.color
-
-		for i in pcount:
-			var angle := float(i) / float(pcount) * TAU - PI * 0.5
-			var p := tip + Vector2(cos(angle), sin(angle)) * orbit
-			draw_circle(p, pr, pc)
-
-		# Center
-		if plant_data.display_name == "Sunflower":
-			draw_circle(tip, 8.0,  Color(0.30, 0.18, 0.04))
-			draw_circle(tip, 4.0,  Color(0.50, 0.28, 0.06))
-		elif plant_data.display_name == "Snowdrop":
-			draw_circle(tip, 5.0, Color(1.0, 1.0, 1.0))
-			draw_circle(tip, 2.5, Color(0.60, 0.90, 0.55))
-		else:
-			draw_circle(tip, 6.5, Color(1.0, 0.92, 0.20))
-			draw_circle(tip, 3.0, Color(1.0, 0.72, 0.10))
-
-	func _pcount() -> int:
-		match plant_data.display_name:
-			"Sunflower": return 14
-			"Aster":     return 20
-			"Snowdrop":  return 6
-		return 6
-
-	func _prad() -> float:
-		match plant_data.display_name:
-			"Sunflower": return 6.5
-			"Aster":     return 4.0
-		return 7.0

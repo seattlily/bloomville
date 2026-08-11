@@ -1,13 +1,15 @@
 extends CanvasLayer
 
 var _gold_label: Label
-var _buy_buttons: Dictionary = {}
+var _buy_buttons: Dictionary = {}  # plant_name -> Button (current season only)
+var _plant_list_vbox: VBoxContainer
 var _overlay: Control
 
 
 func _ready() -> void:
 	_build_ui()
 	GameState.gold_changed.connect(_on_gold_changed)
+	GameClock.season_changed.connect(_on_season_changed)
 	hide_shop()
 
 
@@ -26,7 +28,7 @@ func _build_ui() -> void:
 
 	var vbox := VBoxContainer.new()
 	vbox.add_theme_constant_override("separation", 12)
-	vbox.custom_minimum_size = Vector2(460, 0)
+	vbox.custom_minimum_size = Vector2(480, 0)
 	panel.add_child(vbox)
 
 	var header := HBoxContainer.new()
@@ -42,17 +44,36 @@ func _build_ui() -> void:
 	_gold_label.text = "Gold: %d" % GameState.gold
 	header.add_child(_gold_label)
 
-	var sep := HSeparator.new()
-	vbox.add_child(sep)
+	vbox.add_child(HSeparator.new())
 
-	for plant_name in GameState.all_plants:
-		var data := GameState.all_plants[plant_name] as PlantData
-		vbox.add_child(_plant_row(plant_name, data))
+	_plant_list_vbox = VBoxContainer.new()
+	_plant_list_vbox.add_theme_constant_override("separation", 8)
+	vbox.add_child(_plant_list_vbox)
+
+	_build_season_rows()
 
 	var close_btn := Button.new()
 	close_btn.text = "Close  [Tab]"
 	close_btn.pressed.connect(hide_shop)
 	vbox.add_child(close_btn)
+
+
+func _build_season_rows() -> void:
+	for child in _plant_list_vbox.get_children():
+		child.queue_free()
+	_buy_buttons.clear()
+
+	var season_plants := GameState.plants_for_season(GameClock.current_season)
+
+	var season_header := Label.new()
+	season_header.text = "%s Seeds" % GameClock.get_season_name()
+	season_header.add_theme_font_size_override("font_size", 14)
+	season_header.modulate = Color(0.85, 0.85, 0.65)
+	_plant_list_vbox.add_child(season_header)
+
+	for plant_name in season_plants:
+		var data := GameState.all_plants[plant_name] as PlantData
+		_plant_list_vbox.add_child(_plant_row(plant_name, data))
 
 
 func _plant_row(plant_name: String, data: PlantData) -> HBoxContainer:
@@ -67,20 +88,20 @@ func _plant_row(plant_name: String, data: PlantData) -> HBoxContainer:
 
 	var name_lbl := Label.new()
 	name_lbl.text = data.display_name
-	name_lbl.custom_minimum_size = Vector2(90, 0)
+	name_lbl.custom_minimum_size = Vector2(120, 0)
 	row.add_child(name_lbl)
-
-	var season_lbl := Label.new()
-	season_lbl.text = GameClock.Season.keys()[data.season].capitalize()
-	season_lbl.custom_minimum_size = Vector2(70, 0)
-	season_lbl.modulate = Color(0.75, 0.75, 0.75)
-	row.add_child(season_lbl)
 
 	var harvest_lbl := Label.new()
 	harvest_lbl.text = "Sells for %dg" % data.harvest_gold
 	harvest_lbl.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	harvest_lbl.modulate = Color(0.75, 0.75, 0.75)
 	row.add_child(harvest_lbl)
+
+	var owned_lbl := Label.new()
+	owned_lbl.text = "x%d" % GameState.seeds.get(plant_name, 0)
+	owned_lbl.custom_minimum_size = Vector2(32, 0)
+	owned_lbl.horizontal_alignment = HORIZONTAL_ALIGNMENT_RIGHT
+	row.add_child(owned_lbl)
 
 	var buy_btn := Button.new()
 	buy_btn.text = "Buy  %dg" % data.seed_cost
@@ -90,11 +111,17 @@ func _plant_row(plant_name: String, data: PlantData) -> HBoxContainer:
 	buy_btn.pressed.connect(func():
 		if GameState.spend_gold(captured_cost):
 			GameState.add_seed(captured_name, 1)
+			GameState.log_purchase(captured_name, captured_cost)
+			owned_lbl.text = "x%d" % GameState.seeds.get(captured_name, 0)
 	)
 	_buy_buttons[plant_name] = buy_btn
 	row.add_child(buy_btn)
 
 	return row
+
+
+func _on_season_changed(_new_season: GameClock.Season, _year: int) -> void:
+	_build_season_rows()
 
 
 func toggle() -> void:

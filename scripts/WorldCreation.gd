@@ -18,6 +18,7 @@ const SEASONS := [
 
 var _selected_biome: GameState.Biome = GameState.Biome.FOREST
 var _selected_season: GameClock.Season = GameClock.Season.SPRING
+var _name_input: LineEdit
 
 
 func _ready() -> void:
@@ -42,6 +43,14 @@ func _build_ui() -> void:
 	title.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	title.add_theme_font_size_override("font_size", 24)
 	vbox.add_child(title)
+
+	vbox.add_child(_section_label("Gardener Name"))
+	_name_input = LineEdit.new()
+	_name_input.text = "Gardener"
+	_name_input.placeholder_text = "Enter your name..."
+	_name_input.max_length = 24
+	_name_input.custom_minimum_size = Vector2(0, 36)
+	vbox.add_child(_name_input)
 
 	vbox.add_child(_section_label("Choose Your Biome"))
 	vbox.add_child(_button_row(BIOMES, func(id): _selected_biome = id, _selected_biome))
@@ -79,6 +88,9 @@ func _button_row(items: Array, on_select: Callable, default_id) -> HBoxContainer
 
 
 func _on_start_pressed() -> void:
+	var name_text := _name_input.text.strip_edges()
+	GameState.gardener_name = name_text if name_text.length() > 0 else "Gardener"
 	GameState.biome = _selected_biome
 	GameClock.set_starting_season(_selected_season)
+	GameState.start_new_game()
 	world_created.emit()

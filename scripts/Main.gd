@@ -7,18 +7,23 @@ const SeedShopScene        := preload("res://scenes/SeedShop.tscn")
 const DayNightScene        := preload("res://scenes/DayNight.tscn")
 const SeasonSummaryScene   := preload("res://scenes/SeasonSummary.tscn")
 const BiomeBackgroundScene := preload("res://scenes/BiomeBackground.tscn")
+const PauseMenuScene       := preload("res://scenes/PauseMenu.tscn")
 
 var _world_creation: Node = null
-var _garden_grid: Node = null
-var _seed_panel: Node = null
-var _seed_shop: Node = null
+var _garden_grid: Node    = null
+var _seed_panel: Node     = null
+var _seed_shop: Node      = null
 var _season_summary: Node = null
+var _pause_menu: Node     = null
+var _hud: Node            = null
 
 
 func _ready() -> void:
+	_hud = $HUD
+
 	var day_night := DayNightScene.instantiate()
 	add_child(day_night)
-	move_child(day_night, 0)  # behind HUD (same layer, earlier in tree = drawn first)
+	move_child(day_night, 0)
 
 	_season_summary = SeasonSummaryScene.instantiate()
 	add_child(_season_summary)
@@ -48,7 +53,7 @@ func _on_world_created() -> void:
 func _spawn_garden() -> void:
 	var biome_bg := BiomeBackgroundScene.instantiate()
 	add_child(biome_bg)
-	move_child(biome_bg, 1)  # after DayNight CanvasLayer, before HUD
+	move_child(biome_bg, 1)
 
 	_garden_grid = GardenGridScene.instantiate()
 	add_child(_garden_grid)
@@ -59,6 +64,9 @@ func _spawn_garden() -> void:
 
 	_seed_shop = SeedShopScene.instantiate()
 	add_child(_seed_shop)
+
+	_pause_menu = PauseMenuScene.instantiate()
+	add_child(_pause_menu)
 
 
 func _toggle_shop() -> void:
@@ -76,15 +84,19 @@ func _on_season_changed(new_season: GameClock.Season, year: int) -> void:
 
 
 func _input(event: InputEvent) -> void:
-	if not (event is InputEventKey and event.pressed):
+	if not (event is InputEventKey and event.pressed and not event.echo):
 		return
 	match event.keycode:
+		KEY_ESCAPE:
+			if _pause_menu and _garden_grid:
+				_pause_menu.toggle()
 		KEY_TAB:
-			if _seed_shop:
+			if _seed_shop and not (_pause_menu and GameState.overlay_open):
 				_toggle_shop()
 		KEY_F5:
 			GameState.save_game()
-			print("[Save] Game saved.")
+			if _hud:
+				_hud.flash_saved()
 		KEY_F9:
 			if GameState.load_game():
 				print("[Save] Game loaded.")

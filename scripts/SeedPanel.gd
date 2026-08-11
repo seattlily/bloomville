@@ -7,14 +7,18 @@ const BUTTON_H: float  = 60.0
 
 const FlowerPreviewCell := preload("res://scripts/FlowerPreviewCell.gd")
 
-var _buttons: Dictionary = {}
+var _buttons: Dictionary = {}      # plant_name -> Button (current season only)
+var _preview_row: HBoxContainer    # rebuilt on season change
+var _button_hbox: HBoxContainer    # rebuilt on season change
 var _group: ButtonGroup
+var _panel_vbox: VBoxContainer
 
 
 func _ready() -> void:
 	_group = ButtonGroup.new()
 	_build_ui()
 	GameState.seeds_changed.connect(_refresh_buttons)
+	GameClock.season_changed.connect(_on_season_changed)
 
 
 func _build_ui() -> void:
@@ -32,56 +36,68 @@ func _build_ui() -> void:
 	panel.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
 	anchor.add_child(panel)
 
-	var vbox := VBoxContainer.new()
-	vbox.add_theme_constant_override("separation", 0)
-	panel.add_child(vbox)
+	_panel_vbox = VBoxContainer.new()
+	_panel_vbox.add_theme_constant_override("separation", 0)
+	panel.add_child(_panel_vbox)
+
+	_build_seasonal_ui()
+
+
+func _build_seasonal_ui() -> void:
+	# Clear any previous seasonal content
+	for child in _panel_vbox.get_children():
+		child.queue_free()
+	_buttons.clear()
+	_group = ButtonGroup.new()
+
+	var season_plants := GameState.plants_for_season(GameClock.current_season)
 
 	# ── Flower preview strip ──────────────────────────────────────
-	var preview_row := HBoxContainer.new()
-	preview_row.custom_minimum_size = Vector2(0, PREVIEW_H)
-	preview_row.alignment = BoxContainer.ALIGNMENT_CENTER
-	preview_row.add_theme_constant_override("separation", 12)
-	vbox.add_child(preview_row)
+	_preview_row = HBoxContainer.new()
+	_preview_row.custom_minimum_size = Vector2(0, PREVIEW_H)
+	_preview_row.alignment = BoxContainer.ALIGNMENT_CENTER
+	_preview_row.add_theme_constant_override("separation", 12)
+	_panel_vbox.add_child(_preview_row)
 
+	var season_name := GameClock.get_season_name()
 	var preview_label := Label.new()
-	preview_label.text = "Full bloom:"
+	preview_label.text = "%s blooms:" % season_name
 	preview_label.add_theme_font_size_override("font_size", 11)
 	preview_label.modulate = Color(0.75, 0.75, 0.75)
 	preview_label.size_flags_vertical = Control.SIZE_SHRINK_CENTER
-	preview_row.add_child(preview_label)
+	_preview_row.add_child(preview_label)
 
-	for plant_name in GameState.all_plants:
+	for plant_name in season_plants:
 		var data := GameState.all_plants[plant_name] as PlantData
-		preview_row.add_child(_make_preview_cell(data))
+		_preview_row.add_child(_make_preview_cell(data))
 
-	vbox.add_child(HSeparator.new())
+	_panel_vbox.add_child(HSeparator.new())
 
 	# ── Seed buttons row ──────────────────────────────────────────
-	var hbox := HBoxContainer.new()
-	hbox.add_theme_constant_override("separation", 8)
-	hbox.alignment = BoxContainer.ALIGNMENT_CENTER
-	hbox.custom_minimum_size = Vector2(0, BUTTON_H)
-	vbox.add_child(hbox)
+	_button_hbox = HBoxContainer.new()
+	_button_hbox.add_theme_constant_override("separation", 8)
+	_button_hbox.alignment = BoxContainer.ALIGNMENT_CENTER
+	_button_hbox.custom_minimum_size = Vector2(0, BUTTON_H)
+	_panel_vbox.add_child(_button_hbox)
 
 	var mode_label := Label.new()
 	mode_label.text = "Plant: "
-	hbox.add_child(mode_label)
+	_button_hbox.add_child(mode_label)
 
-	for plant_name in GameState.all_plants:
+	for plant_name in season_plants:
 		var data := GameState.all_plants[plant_name] as PlantData
 		var btn := Button.new()
 		btn.toggle_mode = true
 		btn.button_group = _group
-		btn.custom_minimum_size = Vector2(110, 0)
+		btn.custom_minimum_size = Vector2(130, 0)
 		_set_button_text(btn, data, GameState.seeds.get(plant_name, 0))
 		btn.disabled = GameState.seeds.get(plant_name, 0) == 0
-		var captured_name: String = plant_name
 		var captured_data: PlantData = data
 		btn.toggled.connect(func(pressed: bool):
 			GameState.selected_plant = captured_data if pressed else null
 		)
 		_buttons[plant_name] = btn
-		hbox.add_child(btn)
+		_button_hbox.add_child(btn)
 
 	var water_btn := Button.new()
 	water_btn.text = "🪣 Water"
@@ -93,13 +109,13 @@ func _build_ui() -> void:
 		if pressed:
 			GameState.selected_plant = null
 	)
-	hbox.add_child(water_btn)
+	_button_hbox.add_child(water_btn)
 
 	var shop_btn := Button.new()
 	shop_btn.text = "Shop  [Tab]"
 	shop_btn.custom_minimum_size = Vector2(100, 0)
 	shop_btn.pressed.connect(func(): open_shop_requested.emit())
-	hbox.add_child(shop_btn)
+	_button_hbox.add_child(shop_btn)
 
 
 func _make_preview_cell(data: PlantData) -> Control:
@@ -137,6 +153,11 @@ func _refresh_buttons() -> void:
 		if btn.disabled and btn.button_pressed:
 			btn.button_pressed = false
 			GameState.selected_plant = null
+
+
+func _on_season_changed(_new_season: GameClock.Season, _year: int) -> void:
+	GameState.selected_plant = null
+	_build_seasonal_ui()
 
 
 func _set_button_text(btn: Button, data: PlantData, count: int) -> void:

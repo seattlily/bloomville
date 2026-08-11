@@ -66,7 +66,7 @@ func _draw_plant(plant: PlantInstance, rect: Rect2) -> void:
 	var cx := rect.get_center().x
 	var base_y := rect.end.y - 6.0
 	var stem_heights := [7.0, 15.0, 22.0, 28.0]
-	var stem_h := stem_heights[mini(plant.stage, stem_heights.size() - 1)]
+	var stem_h: float = stem_heights[mini(plant.stage, stem_heights.size() - 1)]
 	var tip := Vector2(cx, base_y - stem_h)
 
 	draw_line(Vector2(cx, base_y), tip, stem_color, 2.0)
@@ -82,7 +82,7 @@ func _draw_plant(plant: PlantInstance, rect: Rect2) -> void:
 		draw_arc(tip, orbit + petal_r + 3.0, 0, TAU, 28, Color(COLOR_MATURE_RING.r, COLOR_MATURE_RING.g, COLOR_MATURE_RING.b, alpha), 1.5)
 	else:
 		var bud_radii := [3.5, 6.0, 9.0]
-		var bud_r := bud_radii[mini(plant.stage, bud_radii.size() - 1)]
+		var bud_r: float = bud_radii[mini(plant.stage, bud_radii.size() - 1)]
 		draw_circle(tip, bud_r, plant_color)
 		if plant.stage >= 1:
 			draw_circle(tip, bud_r * 0.38, plant.data.color.lightened(0.45) * Color(1, 1, 1, alpha))
